@@ -1,0 +1,149 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Assignment_One
+{   
+    public partial class Form1 : Form
+    {
+        //declartion of global variables
+        decimal totalCashiers = 0;
+        decimal totalTicketsSoldG = 0;
+        decimal totalReceiptsG = 0;
+
+        public Form1()
+        {
+            InitializeComponent();
+            panel2.Visible = false;
+            
+        }
+        //Exit button event handler
+        private void exitPage(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+        //Enter button event handler
+        private void enterPageOne_Click(object sender, EventArgs e)
+        {
+            this.Text = "Purchase Tickets";
+            panel1.Visible = false;
+            panel2.Visible = true;
+            adultPT.Text = ("0");
+            studentPT.Text = ("0");
+            childPT.Text = ("0");
+            cashierSummaryDataPageTwo.Visible = false;
+            companySummaryDataPageTwo.Visible = false;
+            cashierNamePageTwo.Visible = true;
+            cashierNamePT.Visible = true;
+            ticketsPageTwo.Visible = true;          
+            ccseGroupBox.Visible = true;          
+            cashierSummaryDataPageTwo.Visible = false;
+            pictureBox2.Visible = true;
+            summaryPageTwo.Enabled = false;
+        }
+
+        private void calculatePageTwo_Click(object sender, EventArgs e)
+        {
+            //declaring local variables
+            decimal FAdultTicketCost = 7.99m;
+            decimal FStudentTicketCost = 4.99m;
+            decimal FChildrenTicketCost = 2.99m;
+            decimal NAdult, NStudent, NChildren, totaltickets;
+            //try block for error handling
+            try
+            {
+                NAdult = int.Parse(adultPT.Text);
+                try
+                {
+                    NStudent = int.Parse(studentPT.Text);
+                    try
+                    {
+                        
+                        NChildren = int.Parse(childPT.Text);
+                        CashierNPT.Text = cashierNamePT.Text;
+                        companySummaryDataPageTwo.Visible = false;
+                        cashierSummaryDataPageTwo.Visible = true;
+                        //calculation of total tickets sold
+                        totaltickets = NAdult + NStudent + NChildren;
+                        TotalTSPT.Text = totaltickets.ToString();
+                        Decimal TotalReceipts;
+                        //calculation of total receipts
+                        TotalReceipts = ((FAdultTicketCost * NAdult) + (FStudentTicketCost * NStudent) + (FChildrenTicketCost * NChildren));
+                        TotalRPT.Text = TotalReceipts.ToString("C");
+                        //iterating the total number of cashiers, receipts and tickets sold
+                        totalCashiers++;
+                        totalReceiptsG = TotalReceipts + totalReceiptsG;
+                        totalTicketsSoldG = totaltickets + totalTicketsSoldG;
+                        calculatePageTwo.Enabled = false;
+                        summaryPageTwo.Enabled = true;
+                        cashierNamePageTwo.Enabled = false;
+                        cashierNamePT.Enabled = false;
+                        ticketsPageTwo.Enabled = false;
+                        this.Text = "Transaction Summary";
+                    }
+
+                    //catch block for error handling
+                    catch
+                    {
+                        //error display message for incorrect input data
+                        MessageBox.Show("Please enter numerical data for number of child tickets", "Data Entry Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        childPT.Focus(); childPT.SelectAll();
+                    }
+                    
+                }
+                catch
+                {
+                    //error display message for incorrect input data
+                    MessageBox.Show("Please enter numerical data for number of student tickets", "Data Entry Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    studentPT.Focus(); studentPT.SelectAll();
+                }
+            }
+            catch
+            {
+                //error display message for incorrect input data
+                MessageBox.Show("Please enter numerical data for number of adult tickets", "Data Entry Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                adultPT.Focus(); adultPT.SelectAll();
+            }
+            
+        }
+        //clear button event handler
+        private void clearPageTwo_Click(object sender, EventArgs e)
+        {
+            this.Text = "Welcome to Mega Cinema";
+            cashierNamePT.Clear();
+            adultPT.Clear();
+            studentPT.Clear();
+            childPT.Clear();
+            calculatePageTwo.Enabled = true;
+            cashierNamePageTwo.Enabled = true;
+            cashierNamePT.Enabled = true;
+            ticketsPageTwo.Enabled = true;
+            panel1.Visible = true;
+            panel2.Visible = false;
+        }
+        //summary button event handler
+        private void summaryPageTwo_Click(object sender, EventArgs e)
+        {
+            clearPageTwo.Focus();
+            this.Text = "All Transaction Summary";
+            ticketsPageTwo.Visible = false;
+            cashierNamePageTwo.Visible = false;
+            cashierNamePT.Visible = false;
+            cashierSummaryDataPageTwo.Visible = false;
+            companySummaryDataPageTwo.Visible = true;
+            tcptLB.Text = totalCashiers.ToString();
+            ttsptLB.Text = totalTicketsSoldG.ToString();
+            trptLB.Text = totalReceiptsG.ToString("C");
+            decimal averageTransactionVal;
+            //calculation of average transaction value
+            averageTransactionVal = (totalReceiptsG / totalTicketsSoldG);
+            atvptLB.Text = averageTransactionVal.ToString("C");
+        }
+    }
+}
