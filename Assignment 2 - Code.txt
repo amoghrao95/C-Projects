@@ -1,0 +1,284 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace WindowsFormsApp1
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+            GroupBox1.Visible = true;
+            GroupBox3.Visible = false;
+            GroupBox4.Visible = false;
+            NotReqRB.Checked = true;        
+            this.Text = "Welcome to CourseNet Ltd";
+        }
+        //Event handler to Exit the application
+        private void ExitBT_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+        //Event handler to clear the contents added in the display page
+        private void ClearDisplay_Click(object sender, EventArgs e)
+        {
+            ParticipantsTB.Clear();
+            CertificateCB.Checked = false;
+            MasterSuiteRB.Checked = false;
+            JuniorSuiteRB.Checked = false;
+            NotReqRB.Checked = true;
+            WorkshopListBox.SelectedItems.Clear();
+            LocationListBox.SelectedItems.Clear();
+        }
+        //Declaration of Global variables
+        const string WORKSHOP1 = "C# Fundamentals", WORKSHOP2 = "C# Basics for Beginners", 
+                     WORKSHOP3 = "C# Intermediate", WORKSHOP4 = "C# Advanced Topics",
+                     WORKSHOP5 = "ASP.NET with C# part A", WORKSHOP6 = "ASP.NET with C# part B";
+        const string LOCATION1 = "Dublin", LOCATION2 = "Belmullet",
+                     LOCATION3 = "Paris", LOCATION4 = "Berlin",
+                     LOCATION5 = "Vienna", LOCATION6 = "Lisbon",
+                     LOCATION7 = "Madrid",LOCATION8 = "Rome",
+					 LOCATION9 = "Amsterdam";
+
+        const decimal TRAININGDAYS1 = 2m, TRAININGDAYS2 = 4m,
+                      TRAININGDAYS3 = 4m, TRAININGDAYS4 = 3m,
+                      TRAININGDAYS5 = 5m, TRAININGDAYS6 = 5m;
+        const decimal REGISTRATIONFEE1 = 900m, REGISTRATIONFEE2 = 1500m, 
+                      REGISTRATIONFEE3 = 1800m, REGISTRATIONFEE4 = 2300m, 
+                      REGISTRATIONFEE5 = 1250m, REGISTRATIONFEE6 = 1250m, GROUPDISCOUNT =.075m;
+        const decimal ACCOMMODATIONFEE1 = 99.99m, ACCOMMODATIONFEE2 = 219.99m,
+                      ACCOMMODATIONFEE3 = 149.99m, ACCOMMODATIONFEE4 = 179.99m,
+                      ACCOMMODATIONFEE5 = 149.99m, ACCOMMODATIONFEE6 = 89.99m,
+                      ACCOMMODATIONFEE7 = 229.99m, ACCOMMODATIONFEE8 = 124.99m,
+                      ACCOMMODATIONFEE9 = 199.99m;
+        const decimal MASTERSUITE = 99.99m, JUNIORSUITE = 59.99m;
+        const decimal PRINTEDCERTIFICATE = 39.99m, NOPRINTEDCERTIFICATE = 0m;
+        decimal TotalBookingsG = 0m, TotalRegFeeG = 0m, TotalLodgingFeeG = 0m, GroupBookingsG = 0m, TotalOptionsG = 0m;
+        decimal RegistrationFee = 0m, OptionalCost = 0m, AccommodationFee = 0m, UpgradeCost = 0m,
+                OverallCost = 0m, OverallCostG = 0m, OverallCostOfParticipants = 0m, Average = 0m;
+        int NumberOfParticipants = 0;
+        //Event handler to select values from the Display page
+        private void DisplayBT_Click(object sender, EventArgs e)
+        {
+            //check whether all the values are present before clicking display button.
+            ClearBT.Enabled = false;
+            GroupBox1.Enabled = false;
+            SummaryBT.Enabled = false;
+            GroupBox3.Visible = true;
+            GroupBox6.Visible = true;
+            int WorkshopIndex = 0, LocationIndex = 0;
+            decimal TrainingDays = 0m;
+            string Workshop = "", Location = "";
+            //TryParsing to handle invalid inputs into the Text box 
+            if (int.TryParse(ParticipantsTB.Text, out NumberOfParticipants) && (NumberOfParticipants>0))
+            {
+                if ((WorkshopListBox.SelectedIndex != -1))
+                {   
+                    if ((LocationListBox.SelectedIndex != -1))
+                    {
+                        WorkshopIndex = WorkshopListBox.SelectedIndex;
+                        LocationIndex = LocationListBox.SelectedIndex;
+                        //switch statements for selection of items from the list boxes 
+                        switch (WorkshopIndex)
+                        {
+                            case 0:
+                                Workshop = WORKSHOP1; TrainingDays = TRAININGDAYS1;
+                                RegistrationFee = REGISTRATIONFEE1;
+                                break;
+                            case 1:
+                                Workshop = WORKSHOP2; TrainingDays = TRAININGDAYS2;
+                                RegistrationFee = REGISTRATIONFEE2;
+                                break;
+                            case 2:
+                                Workshop = WORKSHOP3; TrainingDays = TRAININGDAYS3;
+                                RegistrationFee = REGISTRATIONFEE3;
+                                break;
+                            case 3:
+                                Workshop = WORKSHOP4; TrainingDays = TRAININGDAYS4;
+                                RegistrationFee = REGISTRATIONFEE4;
+                                break;
+                            case 4:
+                                Workshop = WORKSHOP5; TrainingDays = TRAININGDAYS5;
+                                RegistrationFee = REGISTRATIONFEE5;
+                                break;
+                            case 5:
+                                Workshop = WORKSHOP6; TrainingDays = TRAININGDAYS6;
+                                RegistrationFee = REGISTRATIONFEE6;
+                                break;
+                        }
+                        switch (LocationIndex)
+                        {
+                            case 0:
+                                Location = LOCATION1; AccommodationFee = ACCOMMODATIONFEE1;
+                                break;
+                            case 1:
+                                Location = LOCATION2; AccommodationFee = ACCOMMODATIONFEE2;
+                                break;
+                            case 2:
+                                Location = LOCATION3; AccommodationFee = ACCOMMODATIONFEE3;
+                                break;
+                            case 3:
+                                Location = LOCATION4; AccommodationFee = ACCOMMODATIONFEE4;
+                                break;
+                            case 4:
+                                Location = LOCATION5; AccommodationFee = ACCOMMODATIONFEE5;
+                                break;
+                            case 5:
+                                Location = LOCATION6; AccommodationFee = ACCOMMODATIONFEE6;
+                                break;
+                            case 6:
+                                Location = LOCATION7; AccommodationFee = ACCOMMODATIONFEE7;
+                                break;
+                            case 7:
+                                Location = LOCATION8; AccommodationFee = ACCOMMODATIONFEE8;
+                                break;
+                            case 8:
+                                Location = LOCATION9; AccommodationFee = ACCOMMODATIONFEE9;
+                                break;
+                        }
+
+                        AccommodationFee = (AccommodationFee * TrainingDays * NumberOfParticipants);
+
+                        if (MasterSuiteRB.Checked)
+                        {
+                            UpgradeCost = (MASTERSUITE * TrainingDays * NumberOfParticipants);
+                            LodgingCostValLB.Text = AccommodationFee.ToString("C");
+                        }
+                        else if (JuniorSuiteRB.Checked)
+                        {
+                            UpgradeCost = (JUNIORSUITE * TrainingDays * NumberOfParticipants);
+                            LodgingCostValLB.Text = AccommodationFee.ToString("C");
+                        }
+                        else
+                        {
+                            LodgingCostValLB.Text = AccommodationFee.ToString("C");
+                        }
+
+                        if (CertificateCB.Checked)
+                        {
+                            OptionalCost = (PRINTEDCERTIFICATE * NumberOfParticipants) + UpgradeCost;
+                            OptionalCostValLB.Text = OptionalCost.ToString("C");
+                            
+                        }
+                        else
+                        {
+                            OptionalCost = NOPRINTEDCERTIFICATE + UpgradeCost;
+                            OptionalCostValLB.Text = OptionalCost.ToString("C");
+                        }
+                        //Condition to check for those groups that avail a Group discount
+                        if (NumberOfParticipants >= 4 && (MasterSuiteRB.Checked || JuniorSuiteRB.Checked))
+                        {
+                            //overall cost calculated for group discounts
+                            OverallCostOfParticipants = ((RegistrationFee * NumberOfParticipants) + OptionalCost)+AccommodationFee;
+                            OverallCost = OverallCostOfParticipants - (OverallCostOfParticipants * GROUPDISCOUNT);
+                            OverallCostValLB.Text = OverallCost.ToString("C");
+                            GroupBookingsG++;
+                        }
+                        else
+                        {
+                            //overall cost calculated without discounts
+                            OverallCost = ((RegistrationFee * NumberOfParticipants) + OptionalCost)+AccommodationFee;
+                            OverallCostValLB.Text = OverallCost.ToString("C");
+                        }
+                        TotalBookingsG++;
+                        WorkshopNameValLB.Text = Workshop.ToString();
+                        TrainingDaysValSecLB.Text = TrainingDays.ToString();
+                        LocationValLB.Text = Location.ToString();
+                        RegistrationCostValLB.Text = (RegistrationFee * NumberOfParticipants).ToString("C");                       
+                    }
+                    else
+                    {
+                        GroupBox1.Visible = true;
+                        GroupBox3.Visible = false;
+                        GroupBox1.Enabled = true;
+                        //Message to display an error when Location isn't selected
+                        MessageBox.Show("Please select a Location", "Location Needed", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    }
+                }
+                else
+                {
+                    GroupBox1.Visible = true;
+                    GroupBox3.Visible = false;
+                    GroupBox1.Enabled = true;
+                    //Message to display an error when Workshop isn't selected
+                    MessageBox.Show("Please select a Workshop", "Workshop Needed", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                }
+                //GroupBox4.Visible = false;
+                  GroupBox6.Enabled = true;
+            }
+            else
+            {
+                GroupBox1.Visible = true;
+                GroupBox3.Visible = false;
+                GroupBox1.Enabled = true;
+                //Message to display an error when an invalid data is entered into the Text box for Number of Participants
+                MessageBox.Show("Please provide the correct input", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                ParticipantsTB.Focus(); ParticipantsTB.SelectAll();
+            }
+        }
+        //Event handler for Booking the entries
+        private void BookBT_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Your booking is confirmed" + "\n" + "Workshop: " + WorkshopNameValLB.Text + "\n" + "Location: " + LocationValLB.Text + "\n" + "Overall Cost:" + OverallCostValLB.Text, "Booking Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //Clearing options in the Display page post the booking is complete
+            ParticipantsTB.Clear();
+            GroupBox1.Enabled = true;
+            CertificateCB.Checked = false;
+            MasterSuiteRB.Checked = false;
+            JuniorSuiteRB.Checked = false;
+            NotReqRB.Checked = true;
+            WorkshopListBox.SelectedItems.Clear();
+            LocationListBox.SelectedItems.Clear();
+            ClearBT.Enabled = true;
+            SummaryBT.Enabled = true;
+            GroupBox1.Visible = false;
+            GroupBox6.Enabled = false;
+            GroupBox8.Visible = true;
+            GroupBox4.Visible = false;
+            //Calulations to display in the summary page
+            TotalRegFeeG = (RegistrationFee*NumberOfParticipants) + TotalRegFeeG;
+            TotalLodgingFeeG = (AccommodationFee+UpgradeCost) + TotalLodgingFeeG;
+            TotalOptionsG = OptionalCost + TotalOptionsG;
+            OverallCostG = OverallCost + OverallCostG;
+            Average = (OverallCostG / TotalBookingsG); 
+            RegistrationFee = 0m; OptionalCost = 0m; AccommodationFee = 0m; UpgradeCost = 0m;
+            OverallCost = 0m; OverallCostOfParticipants = 0m;
+        }
+        //Event handler to go back to the Display page once the booking is complete
+        private void ClearBT_Click(object sender, EventArgs e)
+        {
+            GroupBox1.Visible = true;
+            GroupBox3.Visible = false;
+            GroupBox4.Visible = false;
+            ParticipantsTB.Clear();
+            CertificateCB.Checked = false;
+            MasterSuiteRB.Checked = false;
+            JuniorSuiteRB.Checked = false;
+            NotReqRB.Checked = true;
+            WorkshopListBox.SelectedItems.Clear();
+            LocationListBox.SelectedItems.Clear();
+        }
+        //Event handler to display the final summary
+        private void SummaryBT_Click(object sender, EventArgs e)
+        {
+            GroupBox1.Visible = false;
+            GroupBox4.Visible = true;
+            GroupBox6.Visible = false;
+            BookingsProcessedValLB.Text = TotalBookingsG.ToString();
+            RegistrationFeeValLB.Text = TotalRegFeeG.ToString();
+            LodgingFeeValLB.Text = TotalLodgingFeeG.ToString();
+            OptionsChosenValLB.Text = TotalOptionsG.ToString();
+            GroupDiscountBookingValLB.Text = GroupBookingsG.ToString();
+            AvgRevenuePBValLB.Text = Average.ToString("N2");
+            GroupBox8.Visible = true;
+            BookBT.Enabled = true;
+        }
+    }
+}
