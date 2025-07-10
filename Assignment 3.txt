@@ -1,0 +1,526 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO; //Namespace to allow reading and writing to files and data streams
+
+namespace Assignment_3
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+            LoginGB.Visible = true;
+            InvestmentGB.Visible = false;
+            InvestmentDetailsGB.Visible = false;
+            SearchHistoryGB.Visible = false;
+            SummaryGB.Visible = false;
+            LoginGB.Location = new Point(26, 21); //Locates the Group box according to the set co-ordinates
+        }
+        //Declaration of Global variables
+        const int loginAttempts = 4;
+        int RemainingAttempts = 4;
+        const string Password = "ShowMeTheMoney#";
+        int Numberofattempts = 1;
+        decimal PrincipalAmount = 0;
+        const decimal Year1 = 12m, Year3 = 36m, Year5 = 60m, Year10 = 120m; //Constants for months
+        const decimal YearOne = 1m, YearThree = 3m, YearFive = 5m, YearTen = 10m; //Constants for years
+        decimal FinalAmount1A = 0, FinalAmount3A = 0, FinalAmount5A = 0, FinalAmount10A = 0;
+        decimal FinalAmount1B = 0, FinalAmount3B = 0, FinalAmount5B = 0, FinalAmount10B = 0;
+        decimal FinalAmount1C = 0, FinalAmount3C = 0, FinalAmount5C = 0, FinalAmount10C = 0;
+        decimal term = 0m;
+        const decimal IntRateY1A = 0.005000m, IntRateY3A = 0.006250m, IntRateY5A = 0.007125m, IntRateY10A = 0.011250m;       
+        const decimal IntRateY1B = 0.006000m, IntRateY3B = 0.007250m, IntRateY5B = 0.008125m, IntRateY10B = 0.01250m;       
+        decimal Balance = 0, CompoundedAmount = 0, BonusAmount = 25000;        
+        int TransactionNum = 0;
+        string TransactionDate = "";
+        int NumberOfYears = 0;
+        const int RecordLength = 9;
+        double TotalInvestment = 0, TotalAccruedInterest = 0, AvgAmountInvested = 0, AvgDurationInv = 0, NumberOfTerms = 0;
+        bool found = false;
+        //Search event handler
+        private void SearchOptionsBT_Click(object sender, EventArgs e)
+        {
+            SearchHistoryGB.Visible = true;
+            SummaryGB.Visible = false;
+            InvestmentDetailsGB.Visible = false;
+        }
+
+        //Clear Fields event handler
+        private void ClearBT_Click(object sender, EventArgs e)
+        {
+            PrincipalAmtTB.Clear();            
+            OneYearInvestmentRB.Checked = false;
+            ThreeYearInvestmentRB.Checked = false;
+            FiveYearInvestmentRB.Checked = false;
+            TenYearInvestmentRB.Checked = false;
+            label01.Text = ""; label02.Text = ""; label03.Text = ""; label04.Text = "";
+            label05.Text = ""; label06.Text = ""; label07.Text = ""; label08.Text = "";
+            InvestmentDetailsGB.Visible = false;
+            CustomerInputGB.Visible = false;
+            SearchHistoryGB.Visible = false;
+            SummaryGB.Visible = false;
+        }
+        //Summary Event handler
+        private void SummaryBT_Click(object sender, EventArgs e)
+        {
+            SearchHistoryGB.Location = new Point(450, 12);
+            ProceedBT.Enabled = true;
+            ClearBT.Enabled = true;
+            LoginGB.Visible = false;
+            InvestmentDetailsGB.Visible = false;
+            SearchHistoryGB.Visible = false;
+            ButtonControlGB.Visible = true;
+            InvestmentGB.Visible = true;
+            SummaryGB.Visible = true;
+            
+            try
+            {
+                //Creates StreamReader Object and Opens the text file
+                StreamReader SummaryRecord = File.OpenText("Investment Details.txt");
+                while (SummaryRecord.EndOfStream == false)
+                {
+                    NumberOfYears++;
+                    //Adds line One to List Box
+                    List_Of_Transaction_Numbers.Items.Add(SummaryRecord.ReadLine());
+                    //Reads lines from the Text file
+                    SummaryRecord.ReadLine();
+                    SummaryRecord.ReadLine();
+                    SummaryRecord.ReadLine();
+                    SummaryRecord.ReadLine();
+                    //Calculates and stores the values
+                    TotalInvestment = TotalInvestment + double.Parse(SummaryRecord.ReadLine());
+                    NumberOfTerms = NumberOfTerms + int.Parse(SummaryRecord.ReadLine());
+                    TotalAccruedInterest = TotalAccruedInterest + double.Parse(SummaryRecord.ReadLine());
+                    SummaryRecord.ReadLine();
+                }
+                //Total and Average values calculated
+                TotalAmountInvestedSLB.Text = TotalInvestment.ToString("C"); //Displays total principal amount invest
+                TotalInterestAccruedSLB.Text = TotalAccruedInterest.ToString("C"); //Displays total accrued amount invest
+                AvgAmountInvested = (TotalInvestment / NumberOfYears);
+                AverageAmountInvestedSLB.Text = AvgAmountInvested.ToString("C"); //Displays average principal amount invested
+                AvgDurationInv = (NumberOfTerms / NumberOfYears);
+                AverageDurationSLB.Text = AvgDurationInv.ToString("N2"); //Displays duration of investment
+                SummaryRecord.Close();
+                SummaryBT.Enabled = false;
+            }
+            catch (Exception Except)
+            {
+                MessageBox.Show(Except.Message);
+            }
+        }
+        //Event handler to clear Search values
+        private void ClearSearchBT_Click(object sender, EventArgs e)
+        {
+            Search_Details.Items.Clear();
+        }
+
+        //Search event handler
+        private void SearchBT_Click(object sender, EventArgs e)
+        {
+            LoginGB.Visible = false;
+            InvestmentGB.Visible = true;
+            CustomerInputGB.Visible = true;
+            ButtonControlGB.Visible = true;
+            InvestmentDetailsGB.Visible = false;
+            ProceedBT.Enabled = false;
+            CustomerInputGB.Enabled = true;
+            //Try catch block used to handle exception
+            try
+            {
+                Search_Details.Items.Clear();
+                StreamReader Read_Report = File.OpenText("Investment Details.txt");
+                while (!Read_Report.EndOfStream)
+                {
+                    string T_No = Read_Report.ReadLine();
+                    string T_Dtn = Read_Report.ReadLine();
+                    string Email_Address = Read_Report.ReadLine();
+
+                    if (TransactionNoRB.Checked && SearchValueTB.Text == T_No) //condition to check if radio button is checked and value entered
+                    {
+                        found = T_No.Equals(SearchValueTB.Text);
+                    }
+                    else if (TransactionDateRB.Checked && SearchValueTB.Text == T_Dtn)
+                    {
+                        found = T_Dtn.Equals(SearchValueTB.Text);
+                    }
+                    else if (EmailRB.Checked && SearchValueTB.Text == Email_Address)
+                    {
+                        found = Email_Address.Equals(SearchValueTB.Text);
+                    }
+                    
+                    if (found) //If condition is True
+                    {
+                        //Items added to the list box
+                        Search_Details.Items.Add(T_No);
+                        Search_Details.Items.Add(T_Dtn);
+                        Search_Details.Items.Add(Email_Address);
+                        Search_Details.Items.Add(Read_Report.ReadLine());
+                        Search_Details.Items.Add(Read_Report.ReadLine());
+                        Search_Details.Items.Add(Read_Report.ReadLine());
+                        Search_Details.Items.Add(Read_Report.ReadLine());
+                        Search_Details.Items.Add(Read_Report.ReadLine());
+                        Search_Details.Items.Add("\n");
+                        Read_Report.ReadLine();
+                        found = false;
+                    }
+                    else
+                    {
+                        for (int i = 4; i <= RecordLength; i++) // For iteration to search through the records
+                        {
+                            Read_Report.ReadLine();
+                        }
+                    }                    
+                }
+                if (Search_Details.Items.Count == 0)
+                {
+                    Search_Details.Items.Add("No Result Found"); //Display in listBox if condition is not met
+                }
+                Read_Report.Close(); //closes the report
+            }
+            catch (Exception Ex)
+            {
+                MessageBox.Show (Ex.Message);
+            }
+        }
+        //Submit event handler
+        private void SubmitBT_Click(object sender, EventArgs e)
+        {
+            LoginGB.Visible = false;
+            InvestmentDetailsGB.Visible = true;
+            InvestmentGB.Visible = true;
+            //Regular expression to check for valid Full name string
+            if (!string.IsNullOrEmpty(FullNameTB.Text) )
+            {
+                //Regular expression to check for valid Email string
+                if (EmailTB.Text.Contains("@") && EmailTB.Text.Contains("."))
+                {
+                    //Regular expression to check for valid telephone string
+                    if (TelephoneTB.Text.Length <= 10)
+                    {
+                        if (PrincipalAmount <= 100000)
+                        {
+                            if (OneYearInvestmentRB.Checked)// Condition when One Year term is selected for PrincipalAmount <= 100000
+                            {
+                                Balance = FinalAmount1A;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearOne;
+                            }
+                            else if (ThreeYearInvestmentRB.Checked)// Condition when Three Year term is selected for PrincipalAmount <= 100000
+                            {
+                                Balance = FinalAmount3A;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearThree;
+                            }
+                            else if (FiveYearInvestmentRB.Checked)// Condition when Five Year term is selected for PrincipalAmount <= 100000
+                            {
+                                Balance = FinalAmount5A;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearFive;
+                            }
+                            else if (TenYearInvestmentRB.Checked)// Condition when Ten Year term is selected for PrincipalAmount <= 100000
+                            {
+                                Balance = FinalAmount10A;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearTen;
+                            }
+                        }
+                        else if (PrincipalAmount >= 100000 && PrincipalAmount <= 1000000)
+                        {
+                            if (OneYearInvestmentRB.Checked)// Condition when One Year term is selected for PrincipalAmount is above 100000 and less than 1000000
+                            {
+                                Balance = FinalAmount1B;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearOne;
+                            }
+                            else if (ThreeYearInvestmentRB.Checked)// Condition when Three Year term is selected for PrincipalAmount is above 100000 and less than 1000000
+                            {
+                                Balance = FinalAmount3B;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearThree;
+                            }
+                            else if (FiveYearInvestmentRB.Checked)// Condition when Five Year term is selected for PrincipalAmount is above 100000 and less than 1000000
+                            {
+                                Balance = FinalAmount5B;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearFive;
+                            }
+                            else if (TenYearInvestmentRB.Checked)// Condition when Ten Year term is selected for PrincipalAmount is above 100000 and less than 1000000
+                            {
+                                Balance = FinalAmount10B;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearTen;
+                            }
+                        }
+                        else if (PrincipalAmount > 1000000)
+                        {
+                            if (OneYearInvestmentRB.Checked) // Condition when One Year term is selected for PrincipalAmount > 1000000
+                            {
+                                Balance = FinalAmount1C;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearOne;
+                            }
+                            else if (ThreeYearInvestmentRB.Checked) // Condition when Three Year term is selected for PrincipalAmount > 1000000
+                            {
+                                Balance = FinalAmount3C;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearThree;
+                            }
+                            else if (FiveYearInvestmentRB.Checked) // Condition when Five Year term is selected for PrincipalAmount > 1000000
+                            {
+                                Balance = FinalAmount5C;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearFive;
+                            }
+                            else if (TenYearInvestmentRB.Checked) // Condition when Ten Year term is selected for PrincipalAmount > 1000000
+                            {
+                                Balance = FinalAmount10C;
+                                CompoundedAmount = Totalamount(Balance, PrincipalAmount);
+                                term = YearTen;
+                            }
+                        }
+                        //Dialogue Box to Display the complete transaction details
+                        DialogResult res = MessageBox.Show("\n" + "Do you wish to confirm your details? " +
+                            "\n" + "Client's Name: " + FullNameTB.Text +
+                            "\n" + "E-mail ID: " + EmailTB.Text +
+                            "\n" + "Telephone No: " + TelephoneTB.Text +
+                            "\n" + "Transaction No: " + TransactionNum.ToString() +
+                            "\n" + "Transaction Date: " + TransactionDate.ToString() +
+                            "\n" + "Compound Interest: " + CompoundedAmount.ToString("N2") +
+                            "\n" + "Number of Terms: " + term.ToString() +
+                            "\n" + "Principal Amount: " + PrincipalAmount.ToString("N2"), "Confirmation", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
+                        if (res == DialogResult.OK) // condition if transaction is confirmed
+                        {
+                            //Message Box to show Transaction confirmation
+                            MessageBox.Show ("Your Transaction is confirmed" , "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            try
+                            {
+                                StreamWriter ReportFile; //Creates Streamwriter object
+                                ReportFile = File.AppendText("Investment Details.txt"); // Appends Text file
+                                //Writes the values into consecutive lines
+                                ReportFile.WriteLine(TransactionNumberDisplayLB.Text);
+                                ReportFile.WriteLine(TransactionDateDisplayLB.Text);
+                                ReportFile.WriteLine(EmailTB.Text);
+                                ReportFile.WriteLine(FullNameTB.Text);
+                                ReportFile.WriteLine(TelephoneTB.Text);
+                                ReportFile.WriteLine(PrincipalAmtTB.Text);
+                                ReportFile.WriteLine(term.ToString());
+                                ReportFile.WriteLine(Balance.ToString());
+                                ReportFile.Write("\n");
+                                ReportFile.Close(); //closes the file
+                                MessageBox.Show("Details have stored to the file", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                //Clears fields post confirmation
+                                PrincipalAmtTB.Clear();
+                                CustomerInputGB.Enabled = false;
+                                OneYearInvestmentRB.Checked = false;
+                                ThreeYearInvestmentRB.Checked = false;
+                                FiveYearInvestmentRB.Checked = false;
+                                TenYearInvestmentRB.Checked = false;
+                                TransactionNumberDisplayLB.Text = ""; TransactionDateDisplayLB.Text = "";
+                                label01.Text = ""; label02.Text = ""; label03.Text = ""; label04.Text = "";
+                                label05.Text = ""; label06.Text = ""; label07.Text = ""; label08.Text = "";
+                                FullNameTB.Clear(); EmailTB.Clear(); TelephoneTB.Clear();
+                                ProceedBT.Enabled = false;
+                                InvestmentDetailsGB.Visible = false;
+                                SummaryBT.Enabled = true;
+                            }
+                            catch (Exception Exp)
+                            {
+                                MessageBox.Show(Exp.Message);
+                            }
+                        }
+                        else if (res == DialogResult.Cancel) //Condition if transaction is cancelled
+                        {
+                            //Message Box to show Transaction Cancellation
+                            MessageBox.Show("Your Transaction is cancelled", "Cancelled", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            //Clears fields post Cancellation
+                            FullNameTB.Clear();
+                            EmailTB.Clear();
+                            TelephoneTB.Clear();                                                       
+                            ProceedBT.Enabled = false;
+                        }
+                    }
+                    else
+                    {
+                        //Message Box to show Error when a Valid Telephone is not provided
+                        MessageBox.Show("Please provide the correct Telephone Number", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        TelephoneTB.Focus(); TelephoneTB.SelectAll();
+                    }
+                }
+                else
+                {
+                    //Message Box to show Error when a Valid Email is not provided
+                    MessageBox.Show("Please provide the correct E-mail", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    EmailTB.Focus(); EmailTB.SelectAll();
+                }
+            }
+            else
+            {
+                //Message Box to show Error when a Valid Name is not provided
+                MessageBox.Show("Please provide the correct Full Name", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                FullNameTB.Focus(); FullNameTB.SelectAll();
+            }
+        }
+        //Proceed Event handler
+        private void ProceedBT_Click(object sender, EventArgs e)
+        {
+            //Condition checking for Investment Term selection
+            if (OneYearInvestmentRB.Checked == true || ThreeYearInvestmentRB.Checked == true || FiveYearInvestmentRB.Checked == true || TenYearInvestmentRB.Checked == true)
+            {
+                //Message Box to show Processed request
+                MessageBox.Show("Request will be processed", "Confirmation", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                InvestmentGB.Visible = true;
+                InvestmentDetailsGB.Visible = true;
+                ProceedBT.Enabled = false;
+                ClearBT.Enabled = false;
+                LoginGB.Visible = false;
+                SearchHistoryGB.Visible = false;
+                SummaryGB.Visible = false;
+                Random rnd = new Random(); // Creating rnd Object
+                TransactionNum = rnd.Next(10000000, 99999999); // Generates an 8 digit Random number
+                TransactionNumberDisplayLB.Text = TransactionNum.ToString();
+                TransactionDate = DateTime.Now.ToString("dd/MM/yyyy"); // Generates Date in DD/MM/YYYY format
+                TransactionDateDisplayLB.Text = TransactionDate.ToString();
+            }
+            else
+            {
+                //Message Box to show Error when Investment Term is not selected
+                MessageBox.Show("Please select a Term for Investment", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+       //Exit Event handler
+        private void ExitBT_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+        //Login Event handler
+        private void LoginBT_Click(object sender, EventArgs e)
+        {
+            bool ValidLogin = (PasswordTB.Text == Password); //Validation for Valid Password
+            if (ValidLogin)
+            {
+                InvestmentGB.Visible = true;
+                CustomerInputGB.Visible = false;
+                LoginGB.Visible = false;
+                ButtonControlGB.Visible = true;
+                SummaryBT.Enabled = false;
+            }
+            else
+            {
+                if (Numberofattempts == loginAttempts) //condition to check maximun number of attempts
+                {
+                    //Message Box to show maximun number of attempts and exit the application
+                    MessageBox.Show("Maximum attempts exceeded", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.Close();
+                }
+                else if (ValidLogin == false) //condition to check number of attempts
+                {
+                    //Message Box to show Invalid attempt and number of attempts remaining
+                    MessageBox.Show("Wrong Password Entered" + "\n" + "Number of attempts left:" + --RemainingAttempts, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    PasswordTB.Clear();
+                    PasswordTB.Focus();
+                    Numberofattempts++;
+                }               
+            }
+        }
+        //Password Clear Event handler
+        private void ClearLoginBT_Click(object sender, EventArgs e)
+        {
+            ClearField(PasswordTB); //Void method call to clear Password fields
+        }
+        //Display Event handler
+        private void DisplayBT_Click(object sender, EventArgs e)
+        {
+            CustomerInputGB.Visible = true;
+            SummaryGB.Visible = false;
+            ProceedBT.Enabled = true;
+            CustomerInputGB.Enabled = true;
+            ClearBT.Enabled = true;
+            InvestmentGB.Visible = true;
+            ButtonControlGB.Visible = true;
+            //Parsing to check for the correct input value
+            if (decimal.TryParse(PrincipalAmtTB.Text, out PrincipalAmount) && (PrincipalAmount > 0))
+            {
+                    //Condition to check for Principal values below 100000
+                    if (PrincipalAmount <= 100000)
+                    {
+                        Balance = PrincipalAmount;
+                        label01.Text = IntRateY1A.ToString(); label02.Text = IntRateY3A.ToString();//Value displayed into the Label
+                        label03.Text = IntRateY5A.ToString(); label04.Text = IntRateY10A.ToString();
+                        FinalAmount1A = InterestCalc(IntRateY1A, Year1, Balance); //Method call returning Final Amount
+                        label05.Text = FinalAmount1A.ToString("N2");
+                        FinalAmount3A = InterestCalc(IntRateY3A, Year3, Balance);
+                        label06.Text = FinalAmount3A.ToString("N2");
+                        FinalAmount5A = InterestCalc(IntRateY5A, Year5, Balance);
+                        label07.Text = FinalAmount5A.ToString("N2");
+                        FinalAmount10A = InterestCalc(IntRateY10A, Year10, Balance);
+                        label08.Text = FinalAmount10A.ToString("N2");
+                    }
+                    //Condition to check for Principal values above 100000 and below 1000000
+                    else if (PrincipalAmount >= 100000 && PrincipalAmount <= 1000000)
+                {
+                        Balance = PrincipalAmount;
+                        label01.Text = IntRateY1B.ToString(); label02.Text = IntRateY3B.ToString();
+                        label03.Text = IntRateY5B.ToString(); label04.Text = IntRateY10B.ToString();
+                        FinalAmount1B = InterestCalc(IntRateY1B, Year1, Balance);
+                        label05.Text = FinalAmount1B.ToString("N2");
+                        FinalAmount3B = InterestCalc(IntRateY3B, Year3, Balance);
+                        label06.Text = FinalAmount3B.ToString("N2");
+                        FinalAmount5B = InterestCalc(IntRateY5B, Year5, Balance);
+                        label07.Text = FinalAmount5B.ToString("N2");
+                        FinalAmount10B = InterestCalc(IntRateY10B, Year10, Balance);
+                        label08.Text = FinalAmount10B.ToString("N2");
+
+                    }
+                    else if (PrincipalAmount > 1000000) //Condition to check for Principal values above 1000000
+                    {
+                        Balance = PrincipalAmount;
+                        label01.Text = IntRateY1B.ToString(); label02.Text = IntRateY3B.ToString();
+                        label03.Text = IntRateY5B.ToString(); label04.Text = IntRateY10B.ToString();
+                        FinalAmount1C = InterestCalc(IntRateY1B, Year1, Balance);
+                        label05.Text = FinalAmount1C.ToString("N2");
+                        FinalAmount3C = InterestCalc(IntRateY3B, Year3, Balance);
+                        label06.Text = FinalAmount3C.ToString("N2");
+                        FinalAmount5C = InterestCalc(IntRateY5B, Year5, Balance) + BonusAmount; //Bonus amount added for PrincipalAmount > 1000000
+                        label07.Text = FinalAmount5C.ToString("N2");
+                        FinalAmount10C = InterestCalc(IntRateY10B, Year10, Balance) + BonusAmount; //Bonus amount added for PrincipalAmount > 1000000
+                        label08.Text = FinalAmount10C.ToString("N2");
+                    }
+            }
+            else
+            {
+                CustomerInputGB.Visible = false;
+                ButtonControlGB.Visible = false;
+                //Message Box to display an Error promprting to provide Valid Principal Amount
+                MessageBox.Show("Please provide the correct Amount", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                PrincipalAmtTB.Focus(); PrincipalAmtTB.SelectAll();
+            }
+        }
+        //Return method to return Total Amount 
+        private decimal InterestCalc(decimal rate, decimal TermInMonths, decimal principal)
+        {
+            for (int MonthCounter = 1; MonthCounter <= TermInMonths; MonthCounter++)
+            {
+                principal = ((principal * rate) + principal);
+            }
+            return principal;
+        }
+        //Return method to return Compounded Interest 
+        private decimal Totalamount(decimal CompoundIntAmt, decimal principalval)
+        {
+            return (CompoundIntAmt - principalval);
+        }
+        //Void method to clear Text fileds
+        private void ClearField(TextBox Field)
+        {
+            Field.Clear();
+            Field.Focus();
+        }
+    }
+}
